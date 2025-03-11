@@ -1,0 +1,11 @@
+clusterManager:
+  enabled: true
+  name: cm-test
+indexerCluster:
+  enabled: true
+  name: idxc-test
+searchHeadCluster:
+  service:
+    type: LoadBalancer
+  enabled: true
+  name: shc-test
