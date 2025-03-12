@@ -90,10 +90,8 @@ I see that a PVC was already made by OVH.
 I need now to configure the Splunk Operator deployments:
 
 ```bash
-
 helm install splunk-operator-test -f ./helm/splunk/new_values.yaml --set installCRDs=true splunk/splunk-operator -n siem
 ```
-
 
 To find all deployed release use the following command : 
 
@@ -103,20 +101,25 @@ helm list -n siem
 
 By default the Splunk Operator has a cluster-wide access. Let's upgrade to modify that
 
-
 ```bash
 helm upgrade --set splunkOperator.clusterWideAccess=false --set installCRDs=true splunk-operator-test splunk/splunk-operator -n siem
 ```
 
 ### Now we need to install Splunk Enterprise
 
+If you want, you can start from here I think, I didn't test it but you can get the splunk operator dependency with this command line: 
+
+```bash
+helm dependency build splunk/splunk-enterprise
+```
+
+Now I can install Splunk Enterprise and verify if all the cluster is fine: 
 
 ```bash
 helm show values splunk/splunk-enterprise
 helm install -f ./helm/splunk-enterprise/new_values.yaml --set installCRDs=true --set splunk-operator.enabled=false splunk-enterprise splunk/splunk-enterprise -n siem
 kubectl get pods -n siem
 kubectl get indexerclusters.enterprise.splunk.com -n siem
-helm upgrade --install splunk-enterprise splunk/splunk-enterprise -f ./helm/splunk-enterprise/new_values.yaml --set installCRDs=true --set splunk-operator.enabled=false -n siem
 ```
 
 I had a problem, indexer doesn't show up in the pods list, I don't know why. Grok found that If the chart uses clusterManager instead of clusterMaster, update your new_values.yaml can fix the problem. That action fixed the problem, maybe the indexer needed the clusterManager.
@@ -127,6 +130,47 @@ Now everything is okay, so we need to verify:
 ```bash
 kubectl get clustermanager,searchheadcluster,indexercluster -n siem
 ```
+
+I have to make a port-forward for debugging, after that I will improve it. For that purpose, I generated a bash script that can be run in background :
+
+
+```bash
+cd scripts/
+Start-Process -FilePath "port-forward.bat" -NoNewWindow
+```
+
+This script store logs files in a file, I need to stop that later
+
+After that I needed to find the password of the admin panel accessible with the port 8000 :
+
+
+```bash
+kubectl get secrets -n siem
+kubectl describe secret splunk-siem-secret -n siem
+$encoded = kubectl get secret splunk-shc-test-password -n siem -o jsonpath="{.data.password}"
+[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($encoded))
+```
+
+I need to change this secret and try to manage this, but I will do it later. I'm currently focusing on making a simulated SIEM working.
+
+## Generating logs with Python
+
+I generate with grok a script to generate Fortinet and Checkpoint logs.
+
+After I create a dockerfile de conteneurize the script.
+
+```bash
+cd Docker
+docker build -t logs-generator:1.0 .
+```
+
+I add the docker image to the kubernetes's cluster :
+
+```bash
+helm install logs-simulator ./helm/logs-generator -n siem
+```
+
+I need to put my image public in the repository to not have error pulling it.
 
 
 
