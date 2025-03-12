@@ -1,0 +1,4 @@
+image:
+  repository: robinvndssl/logs-generator
+  tag: "3.0"
+replicas: 1

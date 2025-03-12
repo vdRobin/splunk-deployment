@@ -1,0 +1,36 @@
+global:
+  splunk:
+    hec:
+      host: "splunk-idxc-test-indexer-headless.siem.svc.cluster.local"
+      port: 8088
+      token: "8702a55c-ca44-4d15-8ae9-ffda9201f693"
+      protocol: http
+      insecureSSL: true  # Set to false if using a valid SSL cert
+
+splunk:
+  hec:
+    host: "splunk-idxc-test-indexer-headless.siem.svc.cluster.local"
+    port: 8088
+    token: "8702a55c-ca44-4d15-8ae9-ffda9201f693"
+    protocol: http
+    insecureSSL: true
+
+logs:
+  enabled: true
+  containers:
+    exclude: []
+    include: ["*"]
+  splunk:
+    hec:
+        indexName: "k8s_logs"
+objects:
+  enabled: true
+  splunk:
+    hec:
+      indexName: "k8s_objects"
+
+metrics:
+  enabled: true
+  splunk:
+    hec:
+      indexName: "k8s_metrics"  # Set a dedicated Splunk Metrics Index

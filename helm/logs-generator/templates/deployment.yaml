@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-simulator
+  namespace: siem
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: splunk-simulator
+  template:
+    metadata:
+      labels:
+        app: splunk-simulator
+    spec:
+      containers:
+      - name: logs-generator
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        env:
+        - name: IS_LOCAL
+          value: "false"  # Set to false for Kubernetes mode
